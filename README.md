@@ -2,4 +2,4 @@
 
 Python interface to ToupCam cameras.
 
-[ToupCam documentation](doc.html)
+[ToupCam documentation](docs.html)
