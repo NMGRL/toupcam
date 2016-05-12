@@ -15,15 +15,20 @@
 # ===============================================================================
 
 # ============= enthought library imports =======================
-import os
-from cStringIO import StringIO
 # ============= standard library imports ========================
-import ctypes
 from numpy import zeros, uint8, uint32
+from cStringIO import StringIO
+import os
+import ctypes
+import sys
 import Image as pil
 # ============= local library imports  ==========================
 
-lib = ctypes.cdll.LoadLibrary('libtoupcam.dylib')
+root = os.path.dirname(__file__)
+if sys.platform == 'darwin':
+    lib = ctypes.cdll.LoadLibrary(os.path.join(root, 'osx', 'libtoupcam.dylib'))
+else:
+    lib = ctypes.windll.LoadLibrary(os.path.join(root, 'x86', 'toupcam.dll'))
 
 TOUPCAM_EVENT_EXPOSURE = 1  # exposure time changed
 TOUPCAM_EVENT_TEMPTINT = 2  # white balance changed
