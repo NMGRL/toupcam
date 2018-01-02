@@ -14,15 +14,18 @@
 # limitations under the License.
 # ===============================================================================
 
-# ============= enthought library imports =======================
 # ============= standard library imports ========================
-from numpy import zeros, uint8, uint32
-from cStringIO import StringIO
-import os
 import ctypes
-import sys
+import os
+# ============= enthought library imports =======================
+from cStringIO import StringIO
+
 import Image as pil
+from numpy import zeros, uint8, uint32
+from traits.api import provides
+
 # ============= local library imports  ==========================
+from pychron.image.i_camera import ICamera
 
 root = os.path.dirname(__file__)
 if sys.platform == 'darwin':
@@ -52,6 +55,7 @@ def success(r):
     return r == 0
 
 
+@provides(ICamera)
 class ToupCamCamera(object):
     _data = None
     _frame_fn = None
@@ -67,9 +71,12 @@ class ToupCamCamera(object):
         self.bits = bits
 
     # icamera interface
-    def save(self, p):
-        self._save_path = p
-        lib.Toupcam_Snap(self.cam, self.resolution)
+    def save(self, p, extension='JPEG', *args, **kw):
+        # self._save_path = p
+        # lib.Toupcam_Snap(self.cam, self.resolution)
+        image = self.get_pil_image()
+
+        image.save(p, extension, *args, **kw)
 
     def _do_save(self, im):
 
@@ -81,8 +88,16 @@ class ToupCamCamera(object):
         # image = self.get_jpeg_data(im, 10)
         image = self.get_pil_image(im)
         # image.save(self._save_path, 'JPEG', quality=90)
-        image.save(self._save_path, 'TIFF')
+        image.save(self._save_path)
         # view_file(self._save_path)
+
+    def save_jpeg(self, p, quality=100):
+        im = self.get_pil_image()
+        im.save(p, 'JPEG', quality=quality)
+
+    def save_tiff(self, p):
+        im = self.get_pil_image()
+        im.save(p, 'TIFF')
 
     def get_jpeg_data(self, data=None, quality=75):
 
@@ -97,13 +112,13 @@ class ToupCamCamera(object):
     def get_pil_image(self, data=None):
         # im = self._data
         if data is None:
-            data= self._data
+            data = self._data
 
-        raw = data.view(uint8).reshape(data.shape+(-1,))
-        bgr = raw[...,:3]
+        raw = data.view(uint8).reshape(data.shape + (-1,))
+        bgr = raw[..., :3]
         image = pil.fromarray(bgr, 'RGB')
-        b,g,r = image.split()
-        return pil.merge('RGB', (r,g,b))
+        b, g, r = image.split()
+        return pil.merge('RGB', (r, g, b))
 
     def get_image_data(self, *args, **kw):
         d = self._data
@@ -122,7 +137,7 @@ class ToupCamCamera(object):
         h, w = args[1].value, args[0].value
 
         shape = (h, w)
-        if self.bits==8:
+        if self.bits == 8:
             dtype = uint8
         else:
             dtype = uint32
@@ -177,6 +192,7 @@ class ToupCamCamera(object):
         if self._lib_func('get_{}'.format(func), ctypes.byref(v)):
             return v.value
 
+    # setters
     def set_gamma(self, v):
         self._lib_func('put_Gamma', ctypes.c_int(v))
 
@@ -192,6 +208,10 @@ class ToupCamCamera(object):
     def set_hue(self, v):
         self._lib_func('put_Hue', ctypes.c_int(v))
 
+    def set_exposure_time(self, v):
+        self._lib_func('put_ExpoTime', ctypes.c_ulong(v))
+
+    # getters
     def get_gamma(self):
         return self._lib_get_func('Gamma')
 
@@ -206,6 +226,9 @@ class ToupCamCamera(object):
 
     def get_hue(self):
         return self._lib_get_func('Hue')
+
+    def get_exposure_time(self):
+        return self._lib_get_func('ExpoTime')
 
     def do_awb(self, callback=None):
         """
@@ -283,6 +306,3 @@ class ToupCamCamera(object):
 
 
 # ============= EOF =============================================
-
-
-
