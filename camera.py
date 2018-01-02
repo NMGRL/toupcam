@@ -18,7 +18,8 @@
 # ============= standard library imports ========================
 import ctypes
 import os
-import Image as pil
+
+from PIL import Image
 from numpy import zeros, uint8, uint32
 from cStringIO import StringIO
 # ============= local library imports  ==========================
@@ -70,9 +71,9 @@ class ToupCamCamera(object):
 
         raw = data.view(uint8).reshape(data.shape + (-1,))
         bgr = raw[..., :3]
-        image = pil.fromarray(bgr, 'RGB')
+        image = Image.fromarray(bgr, 'RGB')
         b, g, r = image.split()
-        return pil.merge('RGB', (r, g, b))
+        return Image.merge('RGB', (r, g, b))
 
     def get_image_data(self, *args, **kw):
         d = self._data
@@ -250,5 +251,15 @@ class ToupCamCamera(object):
 
     def set_esize(self, nres):
         lib.Toupcam_put_eSize(self.cam, ctypes.c_ulong(nres))
+
+
+if __name__ == '__main__':
+    import time
+    cam = ToupCamCamera()
+    cam.open()
+    time.sleep(1)
+
+    cam.save('foo.jpg')
+
 
 # ============= EOF =============================================

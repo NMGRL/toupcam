@@ -33,7 +33,9 @@ root = os.path.dirname(__file__)
 if sys.platform == 'darwin':
     lib = ctypes.cdll.LoadLibrary(os.path.join(root, 'osx', 'libtoupcam.dylib'))
 else:
-    lib = ctypes.windll.LoadLibrary(os.path.join(root, 'x86', 'toupcam.dll'))
+    directory = 'x64' if sys.maxsize > 2 ** 32 else 'x84'
+    ext = 'lib' if sys.platform.startswith('linux') else 'dll'
+    lib = ctypes.windll.LoadLibrary(os.path.join(root, directory, 'toupcam.{}'.format(ext)))
 
 
 class HToupCam(ctypes.Structure):
