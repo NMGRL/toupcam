@@ -32,11 +32,21 @@ class ToupCamCamera(object):
     _temptint_cb = None
     _save_path = None
 
-    def __init__(self, resolution=2, bits=32):
+    resolution = None
+    size = None
+
+    def __init__(self, resolution=None, bits=32, size=None):
+        if resolution is None and size is None:
+            resolution = 2
+
         if bits not in (32,):
             raise ValueError('Bits needs to by 8 or 32')
-        # bits = 8
-        self.resolution = resolution
+
+        if size is None:
+            self.resolution = resolution
+        else:
+            self.size = size
+
         self.cam = self.get_camera()
         self.bits = bits
 
@@ -84,7 +94,11 @@ class ToupCamCamera(object):
             lib.Toupcam_Close(self.cam)
 
     def open(self):
-        self.set_esize(self.resolution)
+        if self.resolution:
+            self.set_esize(self.resolution)
+        else:
+            self.set_size(*self.size)
+
         args = self.get_size()
         if not args:
             return
@@ -251,6 +265,9 @@ class ToupCamCamera(object):
 
     def set_esize(self, nres):
         lib.Toupcam_put_eSize(self.cam, ctypes.c_ulong(nres))
+
+    def set_size(self, w, h):
+        self._lib_func('put_Size', ctypes.c_long(w), ctypes.c_long(h))
 
 
 if __name__ == '__main__':
