@@ -33,7 +33,7 @@ root = os.path.dirname(__file__)
 if sys.platform == 'darwin':
     lib = ctypes.cdll.LoadLibrary(os.path.join(root, 'osx', 'libtoupcam.dylib'))
 else:
-    directory = 'x64' if sys.maxsize > 2 ** 32 else 'x84'
+    directory = 'x64' if sys.maxsize > 2 ** 32 else 'x86'
     # ext = 'lib' if sys.platform.startswith('linux') else 'dll'
     if sys.platform.startswith('linux'):
         name = 'libtoupcam.so'
