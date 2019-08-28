@@ -47,6 +47,25 @@ class HToupCam(ctypes.Structure):
     _fields_ = [('unused', ctypes.c_int)]
 
 
+class ToupcamInst(ctypes.Structure):
+    _fields_ = [('name', ctypes.c_wchar_p),
+    #             ('flag', ctypes.c_uint),
+    #             # ('maxspeed', ctypes.c_uint),
+    #             # ('preview', ctypes.c_uint),
+    #             # ('still', ctypes.c_uint),
+    #             # ('res', ctypes.c_uint)
+                ]
+
+# typedef struct{  #ifdef _WIN32
+        # const wchar_t*  name; /* model name */
+#else    const char*    name;
+# #endif
+# unsigned     flag; /* TOUPCAM_FLAG_xxx */
+# unsigned     maxspeed; /* number of speed level, Toupcam_get_MaxSpeed, the speed range = [0, max], closed interval */
+# unsigned     preview; /* number of preview resolution, Toupcam_get_ResolutionNumber */
+# unsigned     still; /* number of still resolution, Toupcam_get_StillResolutionNumber */
+# ToupcamResolution  res[TOUPCAM_MAX]; }ToupcamModel;
+
 def success(r):
     """
         return true if r==0
