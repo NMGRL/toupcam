@@ -232,27 +232,30 @@ class ToupCamCamera(object):
         func.restype = ctypes.POINTER(HToupCam)
 
         if cid is not None:
-            r, cams = self.enumerate_cameras()
-            print('got ncameras={}'.format(r))
-            print('got instances={}'.format(cams))
-            cid = cams[cid]
+            cams = self.enumerate_cameras()
 
-        print('cid', cid)
+            if isinstance(cid, str):
+                # locate camera by name
+                cid = next((c for c in cams if c.name == cid))
+            else:
+                # locate by index
+                cid = cams[cid]
+
         return func(cid)
 
-    def enumerate_cameras(self, report=True):
+    def enumerate_cameras(self, report=False):
         print('enumerate')
         func = lib.Toupcam_Enum
 
-        ea = (ToupcamInst*TOUPCAM_MAX)()
-        r = func(ea)
+        ea = (ToupcamInst * TOUPCAM_MAX)()
+        func(ea)
         if report:
             print 'name, flag, maxspeed, preview, still, res'
             for e in ea:
                 print e.name, e.flag, e.maxspeed, e.preview, e.still, \
                     [(e.res[i].width, e.res[i].height) for i in range(TOUPCAM_MAX)]
 
-        return r, ea[:r]
+        return ea
 
     def get_serial(self):
         sn = ctypes.create_string_buffer(32)
@@ -295,11 +298,11 @@ class ToupCamCamera(object):
 
 if __name__ == '__main__':
     import time
-    cam = ToupCamCamera(cid=0)
+
+    cam = ToupCamCamera(cid='U3CMOS10000KPA(USB2.0)')
     if cam.open():
         time.sleep(1)
 
         cam.save('foo.jpg')
-
 
 # ============= EOF =============================================
