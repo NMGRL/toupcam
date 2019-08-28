@@ -18,13 +18,12 @@
 # ============= standard library imports ========================
 import ctypes
 import os
-from _ctypes import pointer, byref
 
 from PIL import Image
 from numpy import zeros, uint8, uint32
 from cStringIO import StringIO
 # ============= local library imports  ==========================
-from core import lib, TOUPCAM_EVENT_IMAGE, TOUPCAM_EVENT_STILLIMAGE, success, HToupCam, ToupcamInst
+from core import lib, TOUPCAM_EVENT_IMAGE, TOUPCAM_EVENT_STILLIMAGE, success, HToupCam, ToupcamInst, TOUPCAM_MAX
 
 
 class ToupCamCamera(object):
@@ -37,7 +36,7 @@ class ToupCamCamera(object):
     size = None
 
     def __init__(self, resolution=None, bits=32, size=None, cid=None):
-        print('asfd')
+        print('initialize camera')
         if resolution is None and size is None:
             resolution = 2
 
@@ -115,7 +114,7 @@ class ToupCamCamera(object):
             dtype = uint32
 
         self._data = zeros(shape, dtype=dtype)
-        print('asdfasdfasdf', self._data)
+        print('open', self._data)
         bits = ctypes.c_int(self.bits)
 
         def get_frame(nEvent, ctx):
@@ -233,37 +232,27 @@ class ToupCamCamera(object):
         func.restype = ctypes.POINTER(HToupCam)
 
         if cid is not None:
-            # cams = self.enumerate_cameras()
-            # print('got', cams)
-            # cid = cams[cid]
-            cid = None
+            r, cams = self.enumerate_cameras()
+            print('got ncameras={}'.format(r))
+            print('got instances={}'.format(cams))
+            cid = cams[cid]
 
-        cam = func(cid)
-        print('asdf', cam, cam.contents.unused)
-        return cam
+        print('cid', cid)
+        return func(cid)
 
-    def enumerate_cameras(self):
+    def enumerate_cameras(self, report=True):
+        print('enumerate')
         func = lib.Toupcam_Enum
 
-        # e = ToupcamInst()
-        # po = pointer(e)
-        # r = func(po)
-        # print('cdas', e, e.name, e.flag, e.maxspeed, e.preview, e.still, e.res)
-        # return [e]
-        # buf =[ToupcamInst(), ToupcamInst()]
-        e = ToupcamInst()
-        # po = pointer(e)
-        # e = (ToupcamInst*1)()
-        print('toupret', func(e))
-        print('asdf', e)
-        print('name', e.name)
-        # print('toupinst', e.name, e.flag)
-        # print('cdas', e, e.name, e.flag, e.maxspeed, e.preview, e.still, e.res)
+        ea = (ToupcamInst*TOUPCAM_MAX)()
+        r = func(ea)
+        if report:
+            print 'name, flag, maxspeed, preview, still, res'
+            for e in ea:
+                print e.name, e.flag, e.maxspeed, e.preview, e.still, \
+                    [(e.res[i].width, e.res[i].height) for i in range(TOUPCAM_MAX)]
 
-        buf = ctypes.c_buffer('', size=1000)
-        print('ret', func(buf))
-        print('cbuff', buf[:10])
-        # return [e]
+        return r, ea[:r]
 
     def get_serial(self):
         sn = ctypes.create_string_buffer(32)
